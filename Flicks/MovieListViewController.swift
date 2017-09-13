@@ -9,7 +9,7 @@
 import UIKit
 import AFNetworking
 
-class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
     @IBOutlet weak var movieListTableView: UITableView!
     var movies : MoviesController!
     
@@ -37,9 +37,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let vc = segue.destination as? MovieDetailsViewController {
             let indexPath = movieListTableView.indexPath(for: sender as! MovieTableViewCell)!
-            vc.movies = self.movies
-            vc.movieIndex = indexPath.row
-            
+            vc.movie = self.movies.getMovie(i: indexPath.row)
         } else {
             print("Failed to cast to MovieDetailsViewController")
         }
@@ -54,14 +52,18 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let movie = movies.getMovie(i: indexPath.row)
         let cell = movieListTableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell")  as! MovieTableViewCell
-        cell.movieTitle.text = movie["title"] as? String
-        cell.movieDescription.text = movie["overview"] as? String
-        if let path = movie["poster_path"] as? String {
-            let baseURL = "https://image.tmdb.org/t/p/w500"
-            let posterURL = URL(string: baseURL + path)!
-            cell.moviePoster.setImageWith(posterURL)
+        cell.movieTitle.text = movie.title
+        cell.movieDescription.text = movie.description
+        if let url = movie.posterURL {
+            cell.moviePoster.setImageWith(url)
         }
         return cell
+    }
+    
+    // MARK: - UIScrollViewDelegate
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        print("Scrolled")
     }
 }
 
