@@ -11,7 +11,7 @@ import AFNetworking
 
 class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     @IBOutlet weak var movieListTableView: UITableView!
-    var movieList: [[String: Any]] = [[String: Any]]()
+    var movies : MoviesController!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,38 +21,38 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         movieListTableView.rowHeight = 200
         
         // Load the list of movies.
-        let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed")!
-        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
-        let session = URLSession(configuration: .default, delegate: nil, delegateQueue: OperationQueue.main)
-        let task: URLSessionDataTask = session.dataTask(with: request) { [weak self] (data: Data?, response: URLResponse?, error: Error?) in
+        movies.loadMovies { [weak self] in
             guard let strongSelf = self else {
                 return
             }
-            if let error = error {
-                print("Error fetching URL: \(error)")
-            } else if let data = data,
-                let dataDictionary = try! JSONSerialization.jsonObject(with: data, options: []) as? NSDictionary {
-                print(dataDictionary)
-                strongSelf.movieList = dataDictionary["results"] as! [[String:Any]]
-                strongSelf.movieListTableView.reloadData()
-            }
+            strongSelf.movieListTableView.reloadData()
         }
-        task.resume()
    }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let vc = segue.destination as? MovieDetailsViewController {
+            let indexPath = movieListTableView.indexPath(for: sender as! MovieTableViewCell)!
+            vc.movies = self.movies
+            vc.movieIndex = indexPath.row
+            
+        } else {
+            print("Failed to cast to MovieDetailsViewController")
+        }
+    }
 
     // MARK: - UITableViewDataSource
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return movieList.count
+        return movies.count()
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let movie = movieList[indexPath.row]
+        let movie = movies.getMovie(i: indexPath.row)
         let cell = movieListTableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell")  as! MovieTableViewCell
         cell.movieTitle.text = movie["title"] as? String
         cell.movieDescription.text = movie["overview"] as? String
