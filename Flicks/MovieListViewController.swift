@@ -18,8 +18,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         // Do any additional setup after loading the view, typically from a nib.
         movieListTableView.delegate = self
         movieListTableView.dataSource = self
-        movieListTableView.rowHeight = UITableViewAutomaticDimension
-        movieListTableView.estimatedRowHeight = 256
+        movieListTableView.rowHeight = 200
         
         // Load the list of movies.
         let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed")!
@@ -62,8 +61,6 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
             let posterURL = URL(string: baseURL + path)!
             cell.moviePoster.setImageWith(posterURL)
         }
-        cell.contentView.setNeedsLayout()
-        cell.contentView.layoutIfNeeded()
         return cell
     }
 }
