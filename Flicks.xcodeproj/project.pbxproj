@@ -11,6 +11,7 @@
 		A45D3787E66A8DD24789B6B9 /* Pods_FlicksUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7460074BD3A5A52BF3CE952 /* Pods_FlicksUITests.framework */; };
 		C47646791F69C1F400638F1B /* MovieDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47646781F69C1F400638F1B /* MovieDetailsViewController.swift */; };
 		C476467B1F69C24C00638F1B /* MoviesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C476467A1F69C24C00638F1B /* MoviesController.swift */; };
+		C476467D1F69F70600638F1B /* InfiniteScrollActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C476467C1F69F70600638F1B /* InfiniteScrollActivityView.swift */; };
 		C4C526ED1F68CD010057A589 /* MovieTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4C526EC1F68CD010057A589 /* MovieTableViewCell.swift */; };
 		C4E3D4F11F688B1B004564C4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E3D4F01F688B1B004564C4 /* AppDelegate.swift */; };
 		C4E3D4F31F688B1B004564C4 /* MovieListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E3D4F21F688B1B004564C4 /* MovieListViewController.swift */; };
@@ -48,6 +49,7 @@
 		A784290FBD1C272BD4678BAF /* Pods_FlicksTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_FlicksTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C47646781F69C1F400638F1B /* MovieDetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieDetailsViewController.swift; sourceTree = "<group>"; };
 		C476467A1F69C24C00638F1B /* MoviesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviesController.swift; sourceTree = "<group>"; };
+		C476467C1F69F70600638F1B /* InfiniteScrollActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfiniteScrollActivityView.swift; sourceTree = "<group>"; };
 		C4C526EC1F68CD010057A589 /* MovieTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieTableViewCell.swift; sourceTree = "<group>"; };
 		C4E3D4ED1F688B1B004564C4 /* Flicks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flicks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4E3D4F01F688B1B004564C4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 		C4E3D4E41F688B1B004564C4 = {
 			isa = PBXGroup;
 			children = (
+				C476467C1F69F70600638F1B /* InfiniteScrollActivityView.swift */,
 				C4E3D4EF1F688B1B004564C4 /* Flicks */,
 				C4E3D5041F688B1B004564C4 /* FlicksTests */,
 				C4E3D50F1F688B1B004564C4 /* FlicksUITests */,
@@ -467,6 +470,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C476467D1F69F70600638F1B /* InfiniteScrollActivityView.swift in Sources */,
 				C476467B1F69C24C00638F1B /* MoviesController.swift in Sources */,
 				C47646791F69C1F400638F1B /* MovieDetailsViewController.swift in Sources */,
 				C4E3D4F31F688B1B004564C4 /* MovieListViewController.swift in Sources */,

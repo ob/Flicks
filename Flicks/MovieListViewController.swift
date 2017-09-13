@@ -13,6 +13,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     @IBOutlet weak var movieListTableView: UITableView!
     var movies : MoviesController!
     var isDataLoading = false
+    var loadingMoreView:InfiniteScrollActivityView?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -20,6 +21,16 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         movieListTableView.delegate = self
         movieListTableView.dataSource = self
         movieListTableView.rowHeight = 200
+        
+        // Initialize the loading indicator
+        let frame = CGRect(x: 0, y: movieListTableView.contentSize.height, width: movieListTableView.bounds.size.width, height: InfiniteScrollActivityView.defaultHeight)
+        loadingMoreView = InfiniteScrollActivityView(frame: frame)
+        loadingMoreView!.isHidden = true
+        movieListTableView.addSubview(loadingMoreView!)
+        
+        var insets = movieListTableView.contentInset
+        insets.bottom += InfiniteScrollActivityView.defaultHeight
+        movieListTableView.contentInset = insets
         
         // Load the list of movies.
         movies.loadMovies(onError: { (e) in
@@ -71,6 +82,9 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
             let scrollOffsetThreshold = scrollViewContentHeight - movieListTableView.bounds.size.height
             if scrollView.contentOffset.y > scrollOffsetThreshold && movieListTableView.isDragging {
                 isDataLoading = true
+                let frame = CGRect(x: 0, y: movieListTableView.contentSize.height, width: movieListTableView.bounds.size.width, height: InfiniteScrollActivityView.defaultHeight)
+                loadingMoreView?.frame = frame
+                loadingMoreView!.startAnimating()
                 movies.nextPage(onError: {(e) in
                     print("Failed to load next page: \(e)")
                 }, handler: { [weak self] in
@@ -78,6 +92,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                         return
                     }
                     strongSelf.movieListTableView.reloadData()
+                    strongSelf.loadingMoreView!.stopAnimating()
                     strongSelf.isDataLoading = false
                 })
             }
