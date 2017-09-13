@@ -23,7 +23,7 @@ class MoviesController {
     var totalPages = 1
     var movieList: [[String:Any]] = [[String:Any]]()
 
-    func loadMovies(_ page: Int = 1, handler: @escaping () -> Void) {
+    func loadMovies(_ page: Int = 1, onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
         let urlString = String(format: "%@&page=%d", movieDBURL, page)
         let url = URL(string: urlString)!
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
@@ -33,28 +33,26 @@ class MoviesController {
                 return
             }
             if let error = error {
-                print("Error fetching URL: \(error)")
+                onError(error)
             } else if let data = data,
                 let dataDictionary = try! JSONSerialization.jsonObject(with: data, options: []) as? NSDictionary {
-                // print(dataDictionary)
-                if let total_pages = dataDictionary["total_pages"] as? String,
-                    let totalPages = Int(total_pages) {
-                        strongSelf.totalPages = totalPages
+//                print(dataDictionary)
+                if let total_pages = dataDictionary["total_pages"] as? Int {
+                    strongSelf.totalPages = total_pages
                 }
-                if let page = dataDictionary["page"] as? String,
-                    let currentPage = Int(page) {
-                        strongSelf.currentPage = currentPage
+                if let page = dataDictionary["page"] as? Int {
+                    strongSelf.currentPage = page
                 }
-                strongSelf.movieList = dataDictionary["results"] as! [[String:Any]]
+                strongSelf.movieList.append(contentsOf: dataDictionary["results"] as! [[String:Any]])
                 handler()
             }
         }
         task.resume()
     }
     
-    func nextPage(handler: @escaping () -> Void) {
+    func nextPage(onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
         if (currentPage < totalPages) {
-            loadMovies (currentPage + 1, handler: handler)
+            loadMovies (currentPage + 1, onError: onError, handler: handler)
         }
     }
     

@@ -12,6 +12,7 @@ import AFNetworking
 class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
     @IBOutlet weak var movieListTableView: UITableView!
     var movies : MoviesController!
+    var isDataLoading = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,7 +22,9 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         movieListTableView.rowHeight = 200
         
         // Load the list of movies.
-        movies.loadMovies { [weak self] in
+        movies.loadMovies(onError: { (e) in
+            print("Failed to load: \(e)")
+        }) { [weak self] in
             guard let strongSelf = self else {
                 return
             }
@@ -63,7 +66,22 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     // MARK: - UIScrollViewDelegate
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        print("Scrolled")
+        if !isDataLoading {
+            let scrollViewContentHeight = movieListTableView.contentSize.height
+            let scrollOffsetThreshold = scrollViewContentHeight - movieListTableView.bounds.size.height
+            if scrollView.contentOffset.y > scrollOffsetThreshold && movieListTableView.isDragging {
+                isDataLoading = true
+                movies.nextPage(onError: {(e) in
+                    print("Failed to load next page: \(e)")
+                }, handler: { [weak self] in
+                    guard let strongSelf = self else {
+                        return
+                    }
+                    strongSelf.movieListTableView.reloadData()
+                    strongSelf.isDataLoading = false
+                })
+            }
+        }
     }
 }
 
