@@ -13,6 +13,8 @@ import ZVProgressHUD
 class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
     @IBOutlet weak var movieListTableView: UITableView!
     @IBOutlet weak var errorLabel: UILabel!
+    
+    
     var movies : MoviesController!
     var isDataLoading = false
     var loadingMoreView:InfiniteScrollActivityView?

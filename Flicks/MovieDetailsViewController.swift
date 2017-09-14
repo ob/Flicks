@@ -15,12 +15,17 @@ class MovieDetailsViewController: UIViewController {
     @IBOutlet weak var movieTitle: UILabel!
     @IBOutlet weak var movieDetails: UILabel!
     @IBOutlet weak var moviePoster: UIImageView!
+    @IBOutlet weak var scrollView: UIScrollView!
+    @IBOutlet weak var contentView: UIView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        scrollView.contentSize = CGSize(width: scrollView.frame.size.width,
+                                        height: contentView.frame.origin.y + contentView.frame.size.height)
         movieTitle.text = movie.title
         movieDetails.text = movie.description
+        movieDetails.sizeToFit()
         if let url = movie.posterURL {
             moviePoster.setImageWith(url)
         }
