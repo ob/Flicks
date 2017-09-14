@@ -23,7 +23,7 @@ class MoviesController {
     var totalPages = 1
     var movieList: [[String:Any]] = [[String:Any]]()
 
-    func loadMovies(_ page: Int = 1, onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
+    private func loadData(page: Int, append: Bool, onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
         let urlString = String(format: "%@&page=%d", movieDBURL, page)
         let url = URL(string: urlString)!
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
@@ -43,16 +43,30 @@ class MoviesController {
                 if let page = dataDictionary["page"] as? Int {
                     strongSelf.currentPage = page
                 }
-                strongSelf.movieList.append(contentsOf: dataDictionary["results"] as! [[String:Any]])
+                let data = dataDictionary["results"] as! [[String:Any]]
+                if append {
+                    strongSelf.movieList.append(contentsOf: data)
+                } else {
+                    strongSelf.movieList = data
+                }
+//                print("loaded \(strongSelf.movieList.count) movies (on page \(strongSelf.currentPage))")
                 handler()
             }
         }
         task.resume()
     }
     
+    func loadMovies(onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
+        loadData(page: 1, append: false, onError: onError, handler: handler)
+    }
+    
+    func refresh(onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
+        loadData(page: 1, append: false, onError: onError, handler: handler)
+    }
+    
     func nextPage(onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
         if (currentPage < totalPages) {
-            loadMovies (currentPage + 1, onError: onError, handler: handler)
+            loadData (page: currentPage + 1, append: true, onError: onError, handler: handler)
         }
     }
     

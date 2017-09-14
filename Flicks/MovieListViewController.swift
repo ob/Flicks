@@ -14,6 +14,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     var movies : MoviesController!
     var isDataLoading = false
     var loadingMoreView:InfiniteScrollActivityView?
+    var refreshControl: UIRefreshControl?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,6 +32,11 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         var insets = movieListTableView.contentInset
         insets.bottom += InfiniteScrollActivityView.defaultHeight
         movieListTableView.contentInset = insets
+        
+        // Initialize a UIRefreshControl
+        refreshControl = UIRefreshControl()
+        refreshControl!.addTarget(self, action: #selector(refreshControlAction(_:)), for: UIControlEvents.valueChanged)
+        movieListTableView.insertSubview(refreshControl!, at: 0)
         
         // Load the list of movies.
         movies.loadMovies(onError: { (e) in
@@ -97,6 +103,21 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                 })
             }
         }
+    }
+    
+    // MARK: - UIRefreshControl
+    
+
+    @objc func refreshControlAction(_ refreshControl: UIRefreshControl) {
+        movies.refresh(onError: {(e) in
+            print("Failed to refresh: \(e)")
+        }, handler: { [weak self] in
+            guard let strongSelf = self else {
+                return
+            }
+            strongSelf.movieListTableView.reloadData()
+            strongSelf.refreshControl?.endRefreshing()
+        })
     }
 }
 
