@@ -110,7 +110,6 @@
 		C4E3D4E41F688B1B004564C4 = {
 			isa = PBXGroup;
 			children = (
-				C476467C1F69F70600638F1B /* InfiniteScrollActivityView.swift */,
 				C4E3D4EF1F688B1B004564C4 /* Flicks */,
 				C4E3D5041F688B1B004564C4 /* FlicksTests */,
 				C4E3D50F1F688B1B004564C4 /* FlicksUITests */,
@@ -133,6 +132,7 @@
 		C4E3D4EF1F688B1B004564C4 /* Flicks */ = {
 			isa = PBXGroup;
 			children = (
+				C476467C1F69F70600638F1B /* InfiniteScrollActivityView.swift */,
 				C4E3D4F01F688B1B004564C4 /* AppDelegate.swift */,
 				C4E3D4F21F688B1B004564C4 /* MovieListViewController.swift */,
 				C476467A1F69C24C00638F1B /* MoviesController.swift */,
