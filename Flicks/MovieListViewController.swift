@@ -11,6 +11,7 @@ import AFNetworking
 
 class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
     @IBOutlet weak var movieListTableView: UITableView!
+    @IBOutlet weak var errorLabel: UILabel!
     var movies : MoviesController!
     var isDataLoading = false
     var loadingMoreView:InfiniteScrollActivityView?
@@ -29,6 +30,9 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         loadingMoreView!.isHidden = true
         movieListTableView.addSubview(loadingMoreView!)
         
+        // Initialize the Error indicator
+        errorLabel!.isHidden = true
+        
         var insets = movieListTableView.contentInset
         insets.bottom += InfiniteScrollActivityView.defaultHeight
         movieListTableView.contentInset = insets
@@ -39,12 +43,17 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         movieListTableView.insertSubview(refreshControl!, at: 0)
         
         // Load the list of movies.
-        movies.loadMovies(onError: { (e) in
-            print("Failed to load: \(e)")
+        movies.loadMovies(onError: { [weak self] (e) in
+            print("Failed to load")
+            guard let strongSelf = self else {
+                return
+            }
+            strongSelf.errorLabel!.isHidden = false
         }) { [weak self] in
             guard let strongSelf = self else {
                 return
             }
+            strongSelf.errorLabel!.isHidden = true
             strongSelf.movieListTableView.reloadData()
         }
    }
@@ -91,8 +100,14 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                 let frame = CGRect(x: 0, y: movieListTableView.contentSize.height, width: movieListTableView.bounds.size.width, height: InfiniteScrollActivityView.defaultHeight)
                 loadingMoreView?.frame = frame
                 loadingMoreView!.startAnimating()
-                movies.nextPage(onError: {(e) in
-                    print("Failed to load next page: \(e)")
+                movies.nextPage(onError: {[weak self] (e) in
+                    print("Failed to load next page")
+                    guard let strongSelf = self else {
+                        return
+                    }
+                    strongSelf.errorLabel!.isHidden = false
+                    strongSelf.loadingMoreView!.stopAnimating()
+                    strongSelf.isDataLoading = false
                 }, handler: { [weak self] in
                     guard let strongSelf = self else {
                         return
@@ -100,6 +115,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                     strongSelf.movieListTableView.reloadData()
                     strongSelf.loadingMoreView!.stopAnimating()
                     strongSelf.isDataLoading = false
+                    strongSelf.errorLabel!.isHidden = true
                 })
             }
         }
@@ -109,12 +125,18 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     
 
     @objc func refreshControlAction(_ refreshControl: UIRefreshControl) {
-        movies.refresh(onError: {(e) in
-            print("Failed to refresh: \(e)")
+        movies.refresh(onError: {[weak self] (e) in
+            print("Failed to refresh")
+            guard let strongSelf = self else {
+                return
+            }
+            strongSelf.errorLabel!.isHidden = false
+            strongSelf.refreshControl?.endRefreshing()
         }, handler: { [weak self] in
             guard let strongSelf = self else {
                 return
             }
+            strongSelf.errorLabel!.isHidden = true
             strongSelf.movieListTableView.reloadData()
             strongSelf.refreshControl?.endRefreshing()
         })
