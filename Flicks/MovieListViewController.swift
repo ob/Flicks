@@ -8,6 +8,7 @@
 
 import UIKit
 import AFNetworking
+import ZVProgressHUD
 
 class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
     @IBOutlet weak var movieListTableView: UITableView!
@@ -43,16 +44,19 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         movieListTableView.insertSubview(refreshControl!, at: 0)
         
         // Load the list of movies.
+        ZVProgressHUD.show()
         movies.loadMovies(onError: { [weak self] (e) in
             print("Failed to load")
             guard let strongSelf = self else {
                 return
             }
+            ZVProgressHUD.dismiss()
             strongSelf.errorLabel!.isHidden = false
         }) { [weak self] in
             guard let strongSelf = self else {
                 return
             }
+            ZVProgressHUD.dismiss()
             strongSelf.errorLabel!.isHidden = true
             strongSelf.movieListTableView.reloadData()
         }
