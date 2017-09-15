@@ -49,7 +49,30 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         refreshControl = UIRefreshControl()
         refreshControl!.addTarget(self, action: #selector(refreshControlAction(_:)), for: UIControlEvents.valueChanged)
         movieListTableView.insertSubview(refreshControl!, at: 0)
-        
+        loadMovies()
+   }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        if !errorLabel.isHidden && movies.count() == 0 {
+            loadMovies()
+        }
+    }
+
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let vc = segue.destination as? MovieDetailsViewController {
+            let indexPath = movieListTableView.indexPath(for: sender as! MovieTableViewCell)!
+            vc.movie = self.movies.getMovie(i: indexPath.row)
+        } else {
+            print("Failed to cast to MovieDetailsViewController")
+        }
+    }
+
+    func loadMovies() {
         // Load the list of movies.
         ZVProgressHUD.show()
         movies.loadMovies(onError: { [weak self] (e) in
@@ -67,22 +90,8 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
             strongSelf.errorLabel!.isHidden = true
             strongSelf.movieListTableView.reloadData()
         }
-   }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let vc = segue.destination as? MovieDetailsViewController {
-            let indexPath = movieListTableView.indexPath(for: sender as! MovieTableViewCell)!
-            vc.movie = self.movies.getMovie(i: indexPath.row)
-        } else {
-            print("Failed to cast to MovieDetailsViewController")
-        }
-    }
-
     // MARK: - UITableViewDataSource
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -103,7 +112,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     // MARK: - UIScrollViewDelegate
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if !isDataLoading {
+        if !isDataLoading && movies.count() > 0 {
             let scrollViewContentHeight = movieListTableView.contentSize.height
             let scrollOffsetThreshold = scrollViewContentHeight - movieListTableView.bounds.size.height
             if scrollView.contentOffset.y > scrollOffsetThreshold && movieListTableView.isDragging {
@@ -136,6 +145,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     
 
     @objc func refreshControlAction(_ refreshControl: UIRefreshControl) {
+        errorLabel!.isHidden = true
         movies.refresh(onError: {[weak self] (e) in
             print("Failed to refresh")
             guard let strongSelf = self else {
