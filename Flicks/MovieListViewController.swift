@@ -101,10 +101,37 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let movie = movies.getMovie(i: indexPath.row)
         let cell = movieListTableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell")  as! MovieTableViewCell
+        cell.selectionStyle = .none
+
         cell.movieTitle.text = movie.title
         cell.movieDescription.text = movie.description
         if let url = movie.posterURL {
-            cell.moviePoster.setImageWith(url)
+//            cell.moviePoster.setImageWith(url)
+            // fade in images
+            let imageRequest = URLRequest(url: url)
+            
+            cell.moviePoster.setImageWith(
+                imageRequest,
+                placeholderImage: nil,
+                success: { (imageRequest, imageResponse, image) -> Void in
+                    
+                    // imageResponse will be nil if the image is cached
+                    if imageResponse != nil {
+//                        print("Image was NOT cached, fade in image")
+                        cell.moviePoster.alpha = 0.0
+                        cell.moviePoster.image = image
+                        UIView.animate(withDuration: 0.3, animations: { () -> Void in
+                            cell.moviePoster.alpha = 1.0
+                        })
+                    } else {
+//                        print("Image was cached so just update the image")
+                        cell.moviePoster.image = image
+                    }
+            },
+                failure: { (imageRequest, imageResponse, error) -> Void in
+                    // do something for the failure condition
+                    print("failed")
+            })
         }
         return cell
     }
