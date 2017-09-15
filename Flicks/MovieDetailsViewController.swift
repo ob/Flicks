@@ -34,12 +34,13 @@ class MovieDetailsViewController: UIViewController {
             if let runtime = strongSelf.movie.runtime {
                 let hours = runtime / 60
                 let minutes = runtime % 60
-                if minutes > 0 {
-                    strongSelf.runningTime.text = String(format: "⏱ %d hr %d mins", hours, minutes)
-                } else {
-                    strongSelf.runningTime.text = String(format: "⏱ %d hours", hours)
+                if minutes > 0 && hours > 0 {
+                    strongSelf.runningTime.text = String(format: "%d hr %d mins", hours, minutes)
+                    strongSelf.runningTime.isHidden = false
+                } else if hours > 0 {
+                    strongSelf.runningTime.text = String(format: "%d hours", hours)
+                    strongSelf.runningTime.isHidden = false
                 }
-                strongSelf.runningTime.isHidden = false
             }
             if let rdate = strongSelf.movie.releaseDate {
                 let formatter = DateFormatter()
@@ -67,6 +68,8 @@ class MovieDetailsViewController: UIViewController {
         if let url = movie.posterURL {
             moviePoster.setImageWith(url)
         }
+        let bottomOffset = CGPoint(x: 0, y: scrollView.contentSize.height - scrollView.bounds.size.height)
+        scrollView.setContentOffset(bottomOffset, animated: true)
     }
 
     override func didReceiveMemoryWarning() {
