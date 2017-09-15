@@ -23,12 +23,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let nv1 = tabController.customizableViewControllers?[0] as? UINavigationController,
             let nv2 = tabController.customizableViewControllers?[1] as? UINavigationController {
             if let movieListViewController = nv1.viewControllers[0] as? MovieListViewController {
-                movieListViewController.movies = MoviesController(MovieListCategory.NowPlaying)
+                movieListViewController.movieController = MoviesController(MovieListCategory.NowPlaying)
             } else {
                 crazyCasting = false
             }
             if let movieListViewController = nv2.viewControllers[0] as? MovieListViewController {
-                movieListViewController.movies = MoviesController(MovieListCategory.TopRated)
+                movieListViewController.movieController = MoviesController(MovieListCategory.TopRated)
             } else {
                 crazyCasting = false
             }

@@ -10,12 +10,13 @@ import UIKit
 import AFNetworking
 import ZVProgressHUD
 
-class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
+class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate {
     @IBOutlet weak var movieListTableView: UITableView!
     @IBOutlet weak var errorLabel: UILabel!
     
     
-    var movies : MoviesController!
+    var movieController : MoviesController!
+    var movies: [Movie] = []
     var isDataLoading = false
     var loadingMoreView:InfiniteScrollActivityView?
     var refreshControl: UIRefreshControl?
@@ -30,8 +31,6 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         // Do any additional setup after loading the view, typically from a nib.
         movieListTableView.delegate = self
         movieListTableView.dataSource = self
-        movieListTableView.rowHeight = 200
-        
         // Initialize the loading indicator
         let frame = CGRect(x: 0, y: movieListTableView.contentSize.height, width: movieListTableView.bounds.size.width, height: InfiniteScrollActivityView.defaultHeight)
         loadingMoreView = InfiniteScrollActivityView(frame: frame)
@@ -49,13 +48,22 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         refreshControl = UIRefreshControl()
         refreshControl!.addTarget(self, action: #selector(refreshControlAction(_:)), for: UIControlEvents.valueChanged)
         movieListTableView.insertSubview(refreshControl!, at: 0)
+
         loadMovies()
    }
     
     override func viewWillAppear(_ animated: Bool) {
-        if !errorLabel.isHidden && movies.count() == 0 {
+        movieListTableView.rowHeight = 200
+        if !errorLabel.isHidden && movies.count == 0 {
             loadMovies()
         }
+        self.navigationController?.setNavigationBarHidden(true, animated: animated)
+        super.viewWillAppear(animated)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        self.navigationController?.setNavigationBarHidden(false, animated: animated)
+        super.viewWillDisappear(animated)
     }
 
     override func didReceiveMemoryWarning() {
@@ -66,7 +74,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let vc = segue.destination as? MovieDetailsViewController {
             let indexPath = movieListTableView.indexPath(for: sender as! MovieTableViewCell)!
-            vc.movie = self.movies.getMovie(i: indexPath.row)
+            vc.movie = self.movies[indexPath.row]
         } else {
             print("Failed to cast to MovieDetailsViewController")
         }
@@ -75,31 +83,33 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     func loadMovies() {
         // Load the list of movies.
         ZVProgressHUD.show()
-        movies.loadMovies(onError: { [weak self] (e) in
+        movieController.loadMovies(onError: { [weak self] (e) in
             print("Failed to load")
             guard let strongSelf = self else {
                 return
             }
             ZVProgressHUD.dismiss()
             strongSelf.errorLabel!.isHidden = false
-        }) { [weak self] in
+        }) { [weak self] (movies) in
             guard let strongSelf = self else {
                 return
             }
             ZVProgressHUD.dismiss()
             strongSelf.errorLabel!.isHidden = true
+            strongSelf.movies = movies
             strongSelf.movieListTableView.reloadData()
+            strongSelf.movieListTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: UITableViewScrollPosition.top, animated: false)
         }
     }
     
     // MARK: - UITableViewDataSource
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return movies.count()
+        return movies.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let movie = movies.getMovie(i: indexPath.row)
+        let movie = movies[indexPath.row]
         let cell = movieListTableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell")  as! MovieTableViewCell
         cell.selectionStyle = .none
 
@@ -139,7 +149,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     // MARK: - UIScrollViewDelegate
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if !isDataLoading && movies.count() > 0 {
+        if !isDataLoading && movies.count > 0 {
             let scrollViewContentHeight = movieListTableView.contentSize.height
             let scrollOffsetThreshold = scrollViewContentHeight - movieListTableView.bounds.size.height
             if scrollView.contentOffset.y > scrollOffsetThreshold && movieListTableView.isDragging {
@@ -147,7 +157,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                 let frame = CGRect(x: 0, y: movieListTableView.contentSize.height, width: movieListTableView.bounds.size.width, height: InfiniteScrollActivityView.defaultHeight)
                 loadingMoreView?.frame = frame
                 loadingMoreView!.startAnimating()
-                movies.nextPage(onError: {[weak self] (e) in
+                movieController.nextPage(onError: {[weak self] (e) in
                     print("Failed to load next page")
                     guard let strongSelf = self else {
                         return
@@ -155,14 +165,15 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                     strongSelf.errorLabel!.isHidden = false
                     strongSelf.loadingMoreView!.stopAnimating()
                     strongSelf.isDataLoading = false
-                }, handler: { [weak self] in
+                }, handler: { [weak self] (movies) in
                     guard let strongSelf = self else {
                         return
                     }
-                    strongSelf.movieListTableView.reloadData()
+                    strongSelf.movies.append(contentsOf: movies)
                     strongSelf.loadingMoreView!.stopAnimating()
                     strongSelf.isDataLoading = false
                     strongSelf.errorLabel!.isHidden = true
+                    strongSelf.movieListTableView.reloadData()
                 })
             }
         }
@@ -173,20 +184,21 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
 
     @objc func refreshControlAction(_ refreshControl: UIRefreshControl) {
         errorLabel!.isHidden = true
-        movies.refresh(onError: {[weak self] (e) in
+        movieController.refresh(onError: {[weak self] (e) in
             print("Failed to refresh")
             guard let strongSelf = self else {
                 return
             }
             strongSelf.errorLabel!.isHidden = false
             strongSelf.refreshControl?.endRefreshing()
-        }, handler: { [weak self] in
+        }, handler: { [weak self] (movies) in
             guard let strongSelf = self else {
                 return
             }
             strongSelf.errorLabel!.isHidden = true
-            strongSelf.movieListTableView.reloadData()
             strongSelf.refreshControl?.endRefreshing()
+            strongSelf.movies = movies
+            strongSelf.movieListTableView.reloadData()
         })
     }
 }

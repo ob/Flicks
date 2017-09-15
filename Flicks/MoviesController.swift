@@ -71,7 +71,6 @@ class MoviesController {
     var currentPage = 1
     var totalPages = 1
     var category: String
-    var movieList: [[String:Any]] = [[String:Any]]()
     
     init(_ category: MovieListCategory) {
         switch category {
@@ -88,7 +87,7 @@ class MoviesController {
         return URL(string: urlString)!
     }
     
-    private func loadData(page: Int, append: Bool, onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
+    private func loadData(page: Int, onError: @escaping (Error) -> Void, handler: @escaping ([Movie]) -> Void) {
         let url = buildSearchURL(page: page)
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
         let session = URLSession(configuration: .default, delegate: nil, delegateQueue: OperationQueue.main)
@@ -108,45 +107,36 @@ class MoviesController {
                     strongSelf.currentPage = page
                 }
                 let data = dataDictionary["results"] as! [[String:Any]]
-                if append {
-                    strongSelf.movieList.append(contentsOf: data)
-                } else {
-                    strongSelf.movieList = data
+                var newMovies: [Movie] = []
+                for movie in data {
+                    let m = Movie()
+                    m.id = movie["id"] as? Int
+                    m.title = movie["title"] as? String ?? "No title available"
+                    m.description = movie["overview"] as? String ?? "No description available"
+                    if let path = movie["poster_path"] as? String {
+                        m.posterURL = URL(string: posterBaseURL + path)
+                    }
+                    newMovies.append(m)
                 }
 //                print("loaded \(strongSelf.movieList.count) movies (on page \(strongSelf.currentPage))")
-                handler()
+                handler(newMovies)
             }
         }
         task.resume()
     }
     
-    func loadMovies(onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
-        loadData(page: 1, append: false, onError: onError, handler: handler)
+    func loadMovies(onError: @escaping (Error) -> Void, handler: @escaping ([Movie]) -> Void) {
+        loadData(page: 1, onError: onError, handler: handler)
     }
     
-    func refresh(onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
-        loadData(page: 1, append: false, onError: onError, handler: handler)
+    func refresh(onError: @escaping (Error) -> Void, handler: @escaping ([Movie]) -> Void) {
+        loadData(page: 1, onError: onError, handler: handler)
     }
     
-    func nextPage(onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
+    func nextPage(onError: @escaping (Error) -> Void, handler: @escaping ([Movie]) -> Void) {
         if (currentPage < totalPages) {
-            loadData (page: currentPage + 1, append: true, onError: onError, handler: handler)
+            loadData (page: currentPage + 1, onError: onError, handler: handler)
         }
     }
     
-    func count() -> Int {
-        return movieList.count
-    }
-    
-    func getMovie(i: Int) -> Movie {
-        let ret = Movie()
-        let movie = movieList[i]
-        ret.id = movie["id"] as? Int
-        ret.title = movie["title"] as? String ?? "No Title Available"
-        ret.description = movie["overview"] as? String ?? "No Description Available"
-        if let path = movie["poster_path"] as? String {
-            ret.posterURL = URL(string: posterBaseURL + path)
-        }
-        return ret
-    }
 }
