@@ -22,6 +22,11 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Set our title
+        // self.navigationItem.title = parent?.restorationIdentifier
+
+        
         // Do any additional setup after loading the view, typically from a nib.
         movieListTableView.delegate = self
         movieListTableView.dataSource = self

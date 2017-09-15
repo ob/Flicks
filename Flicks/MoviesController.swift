@@ -9,8 +9,14 @@
 import Foundation
 import UIKit
 
-let movieDBURL: String = "https://api.themoviedb.org/3/movie/now_playing?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed"
+let movieDBURL: String = "https://api.themoviedb.org/3/movie"
+let APIKey: String = "api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed"
 let posterBaseURL: String = "https://image.tmdb.org/t/p/w500"
+
+enum MovieListCategory {
+    case NowPlaying
+    case TopRated
+}
 
 class Movie {
     var title: String = ""
@@ -21,11 +27,26 @@ class Movie {
 class MoviesController {
     var currentPage = 1
     var totalPages = 1
+    var category: String
     var movieList: [[String:Any]] = [[String:Any]]()
+    
+    init(_ category: MovieListCategory) {
+        switch category {
+        case .NowPlaying:
+            self.category = "now_playing"
+        case .TopRated:
+            self.category = "top_rated"
+        }
+    }
+    
+    private func buildURL(page: Int) -> URL {
+        let urlString = String(format:"%@/%@?%@&page=%d",
+                               movieDBURL, category, APIKey, page)
+        return URL(string: urlString)!
+    }
 
     private func loadData(page: Int, append: Bool, onError: @escaping (Error) -> Void, handler: @escaping () -> Void) {
-        let urlString = String(format: "%@&page=%d", movieDBURL, page)
-        let url = URL(string: urlString)!
+        let url = buildURL(page: page)
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
         let session = URLSession(configuration: .default, delegate: nil, delegateQueue: OperationQueue.main)
         let task: URLSessionDataTask = session.dataTask(with: request) { [weak self] (data: Data?, response: URLResponse?, error: Error?) in

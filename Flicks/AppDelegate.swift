@@ -16,9 +16,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 
-        if let navigationController = window?.rootViewController as? UINavigationController,
-           let movieListViewController = navigationController.viewControllers[0] as? MovieListViewController {
-           movieListViewController.movies = MoviesController()
+        // https://stackoverflow.com/questions/22491317/reusing-uiviewcontroller-for-two-tab-bar-items
+        // 
+        var crazyCasting = true
+        if let tabController = window?.rootViewController as? UITabBarController,
+            let nv1 = tabController.customizableViewControllers?[0] as? UINavigationController,
+            let nv2 = tabController.customizableViewControllers?[1] as? UINavigationController {
+            if let movieListViewController = nv1.viewControllers[0] as? MovieListViewController {
+                movieListViewController.movies = MoviesController(MovieListCategory.NowPlaying)
+            } else {
+                crazyCasting = false
+            }
+            if let movieListViewController = nv2.viewControllers[0] as? MovieListViewController {
+                movieListViewController.movies = MoviesController(MovieListCategory.TopRated)
+            } else {
+                crazyCasting = false
+            }
+        } else {
+            crazyCasting = false
+        }
+        if !crazyCasting {
+            print("Crazy casting failed")
+            exit(1)
         }
         return true
     }
