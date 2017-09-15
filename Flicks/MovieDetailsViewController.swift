@@ -17,10 +17,48 @@ class MovieDetailsViewController: UIViewController {
     @IBOutlet weak var moviePoster: UIImageView!
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var contentView: UIView!
+    @IBOutlet weak var releaseDate: UILabel!
+    @IBOutlet weak var runningTime: UILabel!
+    @IBOutlet weak var rating: UILabel!
+    @IBOutlet weak var tagline: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        movie.getExtraDetails(onError: {(e) in
+            print("Network Error")
+        }, onSuccess: {[weak self] in
+            guard let strongSelf = self else {
+                return
+            }
+            if let runtime = strongSelf.movie.runtime {
+                let hours = runtime / 60
+                let minutes = runtime % 60
+                if minutes > 0 {
+                    strongSelf.runningTime.text = String(format: "⏱ %d hr %d mins", hours, minutes)
+                } else {
+                    strongSelf.runningTime.text = String(format: "⏱ %d hours", hours)
+                }
+                strongSelf.runningTime.isHidden = false
+            }
+            if let rdate = strongSelf.movie.releaseDate {
+                let formatter = DateFormatter()
+                formatter.dateStyle = .medium
+                formatter.timeStyle = .none
+                formatter.locale = Locale(identifier: "en_US")
+                strongSelf.releaseDate.text = formatter.string(from: rdate)
+                strongSelf.releaseDate.isHidden = false
+            }
+            if let r = strongSelf.movie.voteAverage {
+                strongSelf.rating.text = String(format: "%.1f", r)
+                strongSelf.rating.isHidden = false
+            }
+            if let t = strongSelf.movie.tagline {
+                strongSelf.tagline.text = t
+                strongSelf.tagline.sizeToFit()
+                strongSelf.tagline.isHidden = false
+            }
+        })
         scrollView.contentSize = CGSize(width: scrollView.frame.size.width,
                                         height: contentView.frame.origin.y + contentView.frame.size.height)
         movieTitle.text = movie.title
