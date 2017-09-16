@@ -98,6 +98,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         if searchActive {
             vc.movie = searchResults[indexPath.row]
             searchController.searchBar.isHidden = true
+            searchController.searchBar.endEditing(true)
         } else {
             vc.movie = movies[indexPath.row]
         }
@@ -249,6 +250,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
 
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searchActive = false
+        movieListTableView.reloadData()
     }
     
     // MARK: - Delete maybe from here onwards
