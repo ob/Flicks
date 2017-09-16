@@ -11,15 +11,19 @@ import AFNetworking
 import ZVProgressHUD
 
 class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate {
+    
     @IBOutlet weak var movieListTableView: UITableView!
     @IBOutlet weak var errorLabel: UILabel!
     
-    
     var movieController : MoviesController!
     var movies: [Movie] = []
+    var searchResults: [Movie] = []
     var isDataLoading = false
     var loadingMoreView:InfiniteScrollActivityView?
     var refreshControl: UIRefreshControl?
+    var searchActive: Bool = false
+    var timer = Timer()
+    var currentPage = 1
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -83,7 +87,8 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     func loadMovies() {
         // Load the list of movies.
         ZVProgressHUD.show()
-        movieController.loadMovies(onError: { [weak self] (e) in
+        currentPage = 1
+        movieController.loadMovies(page: currentPage, onError: { [weak self] (e) in
             print("Failed to load")
             guard let strongSelf = self else {
                 return
@@ -105,11 +110,23 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     // MARK: - UITableViewDataSource
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if searchActive {
+            print("searchResults \(searchResults.count)")
+            return searchResults.count
+        }
+        print("movies.count \(movies.count)")
         return movies.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let movie = movies[indexPath.row]
+        print("cellforrow called with \(indexPath.row)")
+        var movie: Movie
+        if searchActive {
+            movie = searchResults[indexPath.row]
+            print("search results: \(movie)")
+        } else {
+            movie = movies[indexPath.row]
+        }
         let cell = movieListTableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell")  as! MovieTableViewCell
         cell.selectionStyle = .none
 
@@ -143,6 +160,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                     print("failed")
             })
         }
+        print("returning cell: \(cell)")
         return cell
     }
     
@@ -157,7 +175,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                 let frame = CGRect(x: 0, y: movieListTableView.contentSize.height, width: movieListTableView.bounds.size.width, height: InfiniteScrollActivityView.defaultHeight)
                 loadingMoreView?.frame = frame
                 loadingMoreView!.startAnimating()
-                movieController.nextPage(onError: {[weak self] (e) in
+                movieController.loadMovies(page: currentPage + 1, onError: {[weak self] (e) in
                     print("Failed to load next page")
                     guard let strongSelf = self else {
                         return
@@ -169,6 +187,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                     guard let strongSelf = self else {
                         return
                     }
+                    strongSelf.currentPage += 1
                     strongSelf.movies.append(contentsOf: movies)
                     strongSelf.loadingMoreView!.stopAnimating()
                     strongSelf.isDataLoading = false
@@ -184,7 +203,8 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
 
     @objc func refreshControlAction(_ refreshControl: UIRefreshControl) {
         errorLabel!.isHidden = true
-        movieController.refresh(onError: {[weak self] (e) in
+        currentPage = 1
+        movieController.loadMovies(page: currentPage, onError: {[weak self] (e) in
             print("Failed to refresh")
             guard let strongSelf = self else {
                 return
@@ -201,5 +221,51 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
             strongSelf.movieListTableView.reloadData()
         })
     }
+    
+    // MARK: - Search
+    
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        searchActive = true
+    }
+    
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        searchActive = false
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchActive = false
+        movieListTableView.reloadData()
+    }
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchActive = false
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        timer.invalidate()
+        timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(MovieListViewController.doSearch), userInfo: searchText, repeats: false)
+       searchResults = []
+    }
+    
+    @objc func doSearch() {
+        guard let query = timer.userInfo else {
+            timer.invalidate()
+            return
+        }
+        timer.invalidate()
+        movieController.searchMovies(page: 1, query: query as! String, onError: {[weak self] (e) in
+            print("Failed")
+            }, handler: {[weak self] (movies) in
+                guard let strongSelf = self else {
+                    return
+                }
+                print(query)
+                strongSelf.errorLabel!.isHidden = true
+                strongSelf.refreshControl?.endRefreshing()
+                strongSelf.searchResults = movies
+                print("Got \(movies.count) results")
+                strongSelf.movieListTableView.reloadData()
+        })
+    }
 }
+
 
