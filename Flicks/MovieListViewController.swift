@@ -10,7 +10,7 @@ import UIKit
 import AFNetworking
 import ZVProgressHUD
 
-class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate {
+class MovieListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate, UISearchBarDelegate, UISearchResultsUpdating {
     
     @IBOutlet weak var movieListTableView: UITableView!
     @IBOutlet weak var errorLabel: UILabel!
@@ -25,11 +25,22 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     var timer = Timer()
     var currentPage = 1
     
+    let searchController = UISearchController(searchResultsController: nil)
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         // Set our title
         // self.navigationItem.title = parent?.restorationIdentifier
+
+        // do search
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.delegate = self
+
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.dimsBackgroundDuringPresentation = false
+        searchController.searchBar.sizeToFit()
+        movieListTableView.tableHeaderView = searchController.searchBar
 
         
         // Do any additional setup after loading the view, typically from a nib.
@@ -57,7 +68,11 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
    }
     
     override func viewWillAppear(_ animated: Bool) {
+
         movieListTableView.rowHeight = 200
+        if searchActive {
+            searchController.searchBar.isHidden = false
+        }
         if !errorLabel.isHidden && movies.count == 0 {
             loadMovies()
         }
@@ -76,11 +91,15 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let vc = segue.destination as? MovieDetailsViewController {
-            let indexPath = movieListTableView.indexPath(for: sender as! MovieTableViewCell)!
-            vc.movie = self.movies[indexPath.row]
+        guard let vc = segue.destination as? MovieDetailsViewController else {
+            return
+        }
+        let indexPath = movieListTableView.indexPath(for: sender as! MovieTableViewCell)!
+        if searchActive {
+            vc.movie = searchResults[indexPath.row]
+            searchController.searchBar.isHidden = true
         } else {
-            print("Failed to cast to MovieDetailsViewController")
+            vc.movie = movies[indexPath.row]
         }
     }
 
@@ -119,11 +138,10 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        print("cellforrow called with \(indexPath.row)")
         var movie: Movie
+
         if searchActive {
             movie = searchResults[indexPath.row]
-            print("search results: \(movie)")
         } else {
             movie = movies[indexPath.row]
         }
@@ -160,7 +178,6 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                     print("failed")
             })
         }
-        print("returning cell: \(cell)")
         return cell
     }
     
@@ -224,36 +241,36 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     
     // MARK: - Search
     
-    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
-        searchActive = true
-    }
-    
-    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-        searchActive = false
-    }
-    
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        searchActive = false
-        movieListTableView.reloadData()
-    }
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchActive = false
-    }
-    
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+    func updateSearchResults(for searchController: UISearchController) {
+        let searchText = searchController.searchBar.text
         timer.invalidate()
         timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(MovieListViewController.doSearch), userInfo: searchText, repeats: false)
+    }
+
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchActive = false
+    }
+    
+    // MARK: - Delete maybe from here onwards
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        print("textDidChange called")
        searchResults = []
     }
     
     @objc func doSearch() {
-        guard let query = timer.userInfo else {
-            timer.invalidate()
-            return
+        guard let query = timer.userInfo as? String,
+            query != "" else {
+                timer.invalidate()
+                return
         }
         timer.invalidate()
-        movieController.searchMovies(page: 1, query: query as! String, onError: {[weak self] (e) in
-            print("Failed")
+        searchActive = true
+        movieController.searchMovies(page: 1, query: query , onError: {[weak self] (e) in
+            guard let strongSelf = self else {
+                return
+            }
+            strongSelf.errorLabel!.isHidden = false
             }, handler: {[weak self] (movies) in
                 guard let strongSelf = self else {
                     return

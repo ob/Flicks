@@ -42,6 +42,7 @@ class MoviesController {
     private func buildSearchURL(page: Int, query: String) -> URL {
         let urlString = String(format:"%@?%@&query=%@&&page=%d",
                                searchBaseURL, APIKey, query, page)
+        print("urlString = \(urlString)")
         return URL(string: urlString)!
     }
     
@@ -100,7 +101,11 @@ class MoviesController {
                 if let total_pages = dataDictionary["total_pages"] as? Int {
                     strongSelf.totalPages = total_pages
                 }
-                let data = dataDictionary["results"] as! [[String:Any]]
+                guard let data = dataDictionary["results"] as? [[String:Any]] else {
+                    print("Failed to find results in JSON: \(dataDictionary)")
+                    handler([])
+                    return
+                }
                 var newMovies: [Movie] = []
                 for movie in data {
                     let m = Movie()
