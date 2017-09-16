@@ -274,11 +274,11 @@ public class ZVProgressHUD: UIView {
     }
     
     // MARK: 通知
-    @objc func orientationDidChange(notification: Notification) {
+    func orientationDidChange(notification: Notification) {
         self._placeSubView(showKeyboard: true)
     }
     
-    @objc func keyboardWillShow(notification: Notification) {
+    func keyboardWillShow(notification: Notification) {
         
         guard self.superview != nil else { return }
         UIView.animate(withDuration: AnimationDuration.keyboard) {
@@ -293,7 +293,7 @@ public class ZVProgressHUD: UIView {
         }
     }
     
-    @objc func keyboardWillHide(notification: Notification) {
+    func keyboardWillHide(notification: Notification) {
         guard self.superview != nil else { return }
         UIView.animate(withDuration: AnimationDuration.keyboard) {
             self._placeSubView(showKeyboard: false)
@@ -486,7 +486,7 @@ extension ZVProgressHUD {
         }
     }
     
-    @objc func overlayDidTouchUpInside(_ sender: Any) {
+    func overlayDidTouchUpInside(_ sender: Any) {
         NotificationCenter.default.post(name: .ZVProgressHUDDidReceiveTouchEvent, object: self, userInfo: nil)
     }
 
@@ -742,7 +742,7 @@ fileprivate extension UILabel {
         if let value = self.text as NSString? {
             let size = value.boundingRect(with: maxSize,
                                           options: .usesLineFragmentOrigin,
-                                          attributes: [NSAttributedStringKey.font: self.font],
+                                          attributes: [NSFontAttributeName: self.font],
                                           context: nil).size
             
             return CGSize(width: size.width + 0.5, height: size.height + 0.5);

@@ -68,7 +68,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
    }
     
     override func viewWillAppear(_ animated: Bool) {
-
+        print("viewWillAppear for list search is \(searchActive)")
         movieListTableView.rowHeight = 200
         if searchActive {
             searchController.searchBar.isHidden = false

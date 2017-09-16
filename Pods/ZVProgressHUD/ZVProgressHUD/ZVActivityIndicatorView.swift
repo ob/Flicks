@@ -159,7 +159,7 @@ internal class ZVActivityIndicatorView: UIView {
         }
     }
     
-    @objc internal func resetAnimating() {
+    internal func resetAnimating() {
         if self.isAnimating {
             self.stopAnimating()
             self.startAnimating()
