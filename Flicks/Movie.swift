@@ -16,6 +16,7 @@ class Movie {
     var originalLanguage: String?
     var releaseDate: Date?
     var posterURL: URL?
+    var posterLowResURL: URL?
     var budget: Int?
     var runtime: Int?
     var tagline: String?
@@ -23,6 +24,17 @@ class Movie {
     private func buildMovieURL() -> URL {
         let urlString = String(format:"%@/%d?%@", movieDBURL, id!, APIKey)
         return URL(string: urlString)!
+    }
+
+    convenience init(map: [String:Any]) {
+        self.init()
+        id = map["id"] as? Int
+        title = map["title"] as? String ?? "No title available"
+        description = map["overview"] as? String ?? "No description available"
+        if let path = map["poster_path"] as? String {
+            posterURL = URL(string: posterBaseURL + path)
+            posterLowResURL = URL(string: posterLowResBaseURL + path)
+        }
     }
     
     func getExtraDetails(onError: @escaping (Error) -> Void, onSuccess: @escaping () -> Void) {

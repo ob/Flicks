@@ -45,17 +45,6 @@ class MoviesController {
         return URL(string: urlString)!
     }
 
-    private func parseMovie(_ movie: [String:Any]) -> Movie {
-        let m = Movie()
-        m.id = movie["id"] as? Int
-        m.title = movie["title"] as? String ?? "No title available"
-        m.description = movie["overview"] as? String ?? "No description available"
-        if let path = movie["poster_path"] as? String {
-            m.posterURL = URL(string: posterBaseURL + path)
-        }
-        return m
-    }
-    
     func loadMovies(page: Int, query: String?, onError: @escaping (Error) -> Void, handler: @escaping ([Movie]) -> Void) {
         var url: URL
         if let query = query {
@@ -73,17 +62,15 @@ class MoviesController {
                 onError(error)
             } else if let data = data,
                 let dataDictionary = try! JSONSerialization.jsonObject(with: data, options: []) as? NSDictionary {
-//                print(dataDictionary)
                 if let total_pages = dataDictionary["total_pages"] as? Int {
                     strongSelf.totalPages = total_pages
                 }
                 let data = dataDictionary["results"] as! [[String:Any]]
                 var newMovies: [Movie] = []
                 for movie in data {
-                    let m = strongSelf.parseMovie(movie)
+                    let m = Movie(map: movie)
                     newMovies.append(m)
                 }
-//                print("loaded \(strongSelf.movieList.count) movies (on page \(strongSelf.currentPage))")
                 handler(newMovies)
             }
         }

@@ -156,7 +156,6 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         cell.movieTitle.text = movie.title
         cell.movieDescription.text = movie.description
         if let url = movie.posterURL {
-//            cell.moviePoster.setImageWith(url)
             // fade in images
             let imageRequest = URLRequest(url: url)
             
