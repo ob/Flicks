@@ -20,9 +20,9 @@ The following **optional** features are implemented:
 - [ ] Implement segmented control to switch between list view and grid view.
 - [x] Add a search bar.
 - [x] All images fade in.
-- [ ] For the large poster, load the low-res image first, switch to high-res when complete.
-- [ ] Customize the highlight and selection effect of the cell.
-- [ ] Customize the navigation bar.
+- [x] For the large poster, load the low-res image first, switch to high-res when complete.
+- [x] Customize the highlight and selection effect of the cell.
+- [x] Customize the navigation bar.
 
 The following **additional** features are implemented:
 
@@ -38,7 +38,13 @@ GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 ## Notes
 
-Describe any challenges encountered while building the app.
+I didn't implement the segmented control because I couldn't find a
+place in the UI where it didn't look terrible.
+
+I found it challenging to keep track of state between
+controllers. Also, even though Swift is strongly typed, the edges
+between the frameworks and the swift code leak through so you get
+surprising crashes.
 
 ## License
 

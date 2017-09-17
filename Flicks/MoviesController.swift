@@ -11,8 +11,6 @@ import UIKit
 
 let movieDBURL: String = "https://api.themoviedb.org/3/movie"
 let APIKey: String = "api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed"
-let posterBaseURL: String = "https://image.tmdb.org/t/p/w500"
-let posterLowResBaseURL: String = "https://image.tmdb.org/t/p/w45"
 let searchBaseURL: String = "https://api.themoviedb.org/3/search/movie"
 
 enum MovieListCategory {
@@ -39,16 +37,20 @@ class MoviesController {
         return URL(string: urlString)!
     }
     
-    private func buildSearchURL(page: Int, query: String) -> URL {
+    private func buildSearchURL(page: Int, query: String) -> URL? {
+        let escapedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+        if escapedQuery == nil {
+            return nil
+        }
         let urlString = String(format:"%@?%@&query=%@&&page=%d",
-                               searchBaseURL, APIKey, query, page)
-        return URL(string: urlString)!
+                               searchBaseURL, APIKey, escapedQuery!, page)
+        return URL(string: urlString)
     }
 
     func loadMovies(page: Int, query: String?, onError: @escaping (Error) -> Void, handler: @escaping ([Movie]) -> Void) {
         var url: URL
         if let query = query {
-            url = buildSearchURL(page: page, query: query)
+            url = buildSearchURL(page: page, query: query) ?? buildLoadURL(page: page) // lame, maybe this should error but how to tell the user?
         } else {
             url = buildLoadURL(page: page)
         }

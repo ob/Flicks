@@ -135,10 +135,8 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if searchString != nil {
-            print("searchResults \(searchResults.count)")
             return searchResults.count
         }
-        print("movies.count \(movies.count)")
         return movies.count
     }
     
@@ -155,7 +153,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
 
         cell.movieTitle.text = movie.title
         cell.movieDescription.text = movie.description
-        if let url = movie.posterURL {
+        if let url = movie.posterLowResURL {
             // fade in images
             let imageRequest = URLRequest(url: url)
             
@@ -179,8 +177,10 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
             },
                 failure: { (imageRequest, imageResponse, error) -> Void in
                     // do something for the failure condition
-                    print("failed")
+                    cell.moviePoster.image = #imageLiteral(resourceName: "poster-placeholder")
             })
+        } else {
+            cell.moviePoster.image = #imageLiteral(resourceName: "poster-placeholder")
         }
         return cell
     }
@@ -200,7 +200,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                 loadingMoreView?.frame = frame
                 loadingMoreView!.startAnimating()
                 movieController.loadMovies(page: currentPage + 1, query: searchString, onError: {[weak self] (e) in
-                    print("Failed to load next page")
+//                    print("Failed to load next page")
                     guard let strongSelf = self else {
                         return
                     }
@@ -232,7 +232,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         errorLabel!.isHidden = true
         currentPage = 1
         movieController.loadMovies(page: currentPage, query: nil, onError: {[weak self] (e) in
-            print("Failed to refresh")
+//            print("Failed to refresh")
             guard let strongSelf = self else {
                 return
             }
@@ -292,7 +292,6 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                 strongSelf.errorLabel!.isHidden = true
                 strongSelf.refreshControl?.endRefreshing()
                 strongSelf.searchResults = movies
-                print("Got \(movies.count) search results for: \(query)")
                 strongSelf.movieListTableView.reloadData()
         })
     }

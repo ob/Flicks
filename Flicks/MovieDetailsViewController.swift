@@ -65,9 +65,43 @@ class MovieDetailsViewController: UIViewController {
         movieTitle.text = movie.title
         movieDetails.text = movie.description
         movieDetails.sizeToFit()
-        if let url = movie.posterURL {
-            moviePoster.setImageWith(url)
+        if let url = movie.posterLowResURL {
+            // fade in images
+            let imageRequest = URLRequest(url: url)
+
+            print("Loading low res image")
+            moviePoster.setImageWith(
+                imageRequest,
+                placeholderImage: nil,
+                success: { [weak self] (imageRequest, imageResponse, image) -> Void in
+                    guard let strongSelf = self else {
+                        // Set placeholder poster here?
+                        return
+                    }
+                    // imageResponse will be nil if the image is cached
+                    if imageResponse != nil {
+                        // not cached, fade in
+                        strongSelf.moviePoster.alpha = 0.0
+                        strongSelf.moviePoster.image = image
+                        UIView.animate(withDuration: 0.3, animations: { () -> Void in
+                            strongSelf.moviePoster.alpha = 1.0
+                        })
+                    } else {
+                        // cached
+                        strongSelf.moviePoster.image = image
+                    }
+                    strongSelf.loadHighResImage()
+            },
+                failure: { [weak self] (imageRequest, imageResponse, error) -> Void in
+                    guard let strongSelf = self else {
+                        return
+                    }
+                    strongSelf.moviePoster.image = #imageLiteral(resourceName: "poster-placeholder")
+            })
+        } else {
+            moviePoster.image = #imageLiteral(resourceName: "poster-placeholder")
         }
+
         let bottomOffset = CGPoint(x: 0, y: scrollView.contentSize.height - scrollView.bounds.size.height)
         scrollView.setContentOffset(bottomOffset, animated: true)
     }
@@ -81,6 +115,40 @@ class MovieDetailsViewController: UIViewController {
         print("viewWillAppear details for \(movie.title)")
     }
     
+    func loadHighResImage() {
+        if let url = movie.posterURL {
+            // fade in images
+            let imageRequest = URLRequest(url: url)
+
+            print("Loading high-res image")
+            moviePoster.setImageWith(
+                imageRequest,
+                placeholderImage: nil,
+                success: { [weak self] (imageRequest, imageResponse, image) -> Void in
+                    guard let strongSelf = self else {
+                        // Set placeholder poster here?
+                        return
+                    }
+                    // imageResponse will be nil if the image is cached
+                    if imageResponse != nil {
+                        // not cached, fade in
+                        strongSelf.moviePoster.alpha = 0.0
+                        strongSelf.moviePoster.image = image
+                        UIView.animate(withDuration: 0.3, animations: { () -> Void in
+                            strongSelf.moviePoster.alpha = 1.0
+                        })
+                    } else {
+                        // cached
+                        strongSelf.moviePoster.image = image
+                    }
+                },
+                failure: { (imageRequest, imageResponse, error) -> Void in
+                    // if this fails, it's fine to leave the low-res poster as the image
+            })
+        } else {
+            moviePoster.image = #imageLiteral(resourceName: "poster-placeholder")
+        }
+    }
 
     /*
     // MARK: - Navigation

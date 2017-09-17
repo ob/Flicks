@@ -7,6 +7,10 @@
 //
 
 import Foundation
+
+let posterBaseURL: String = "https://image.tmdb.org/t/p/original"
+let posterLowResBaseURL: String = "https://image.tmdb.org/t/p/w500"
+
 class Movie {
     var id: Int?
     var title: String = ""
