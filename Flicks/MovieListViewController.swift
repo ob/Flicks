@@ -24,7 +24,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     var searchString: String? = nil
     var timer = Timer()
     var currentPage = 1
-    
+
     let searchController = UISearchController(searchResultsController: nil)
     
     override func viewDidLoad() {
@@ -35,6 +35,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
 
         // This is needed to avoid a black screen when coming back here
         definesPresentationContext = true
+
 
         // do search
         searchController.searchResultsUpdater = self
@@ -69,7 +70,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
 
         loadMovies()
    }
-    
+
     override func viewWillAppear(_ animated: Bool) {
 
         movieListTableView.rowHeight = 200
@@ -129,7 +130,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
             strongSelf.movieListTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: UITableViewScrollPosition.top, animated: false)
         }
     }
-    
+
     // MARK: - UITableViewDataSource
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
