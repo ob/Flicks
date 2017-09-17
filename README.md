@@ -46,6 +46,9 @@ controllers. Also, even though Swift is strongly typed, the edges
 between the frameworks and the swift code leak through so you get
 surprising crashes.
 
+Testing is hard and tedious. I can't wait until we get to automated
+testing.
+
 ## License
 
     Copyright 2017 Oscar Bonilla

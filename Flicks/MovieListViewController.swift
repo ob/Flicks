@@ -36,7 +36,6 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         // This is needed to avoid a black screen when coming back here
         definesPresentationContext = true
 
-
         // do search
         searchController.searchResultsUpdater = self
         searchController.searchBar.delegate = self
@@ -149,7 +148,13 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
             movie = movies[indexPath.row]
         }
         let cell = movieListTableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell")  as! MovieTableViewCell
+
+        // Customize selection of cell
         cell.selectionStyle = .none
+//        let backgroundView = UIView()
+//        backgroundView.backgroundColor = UIColor.darkGray
+//        cell.selectedBackgroundView = backgroundView
+//        cell.backgroundColor = UIColor.lightGray
 
         cell.movieTitle.text = movie.title
         cell.movieDescription.text = movie.description

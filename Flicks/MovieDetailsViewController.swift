@@ -25,6 +25,11 @@ class MovieDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        // Customize Navigation Bar
+        if let navigationBar = navigationController?.navigationBar {
+            print("Cusomizing Nav Controller")
+            navigationBar.backgroundColor = UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 1.2)
+        }
         movie.getExtraDetails(onError: {(e) in
             // Ignore this error since all we miss are extra details
             print("Network Error")
