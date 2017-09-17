@@ -21,7 +21,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     var isDataLoading = false
     var loadingMoreView:InfiniteScrollActivityView?
     var refreshControl: UIRefreshControl?
-    var searchActive: Bool = false
+    var searchString: String? = nil
     var timer = Timer()
     var currentPage = 1
     
@@ -73,7 +73,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     override func viewWillAppear(_ animated: Bool) {
 
         movieListTableView.rowHeight = 200
-        if searchActive {
+        if searchString != nil {
             searchController.searchBar.isHidden = false
         }
         if !errorLabel.isHidden && movies.count == 0 {
@@ -98,7 +98,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
             return
         }
         let indexPath = movieListTableView.indexPath(for: sender as! MovieTableViewCell)!
-        if searchActive {
+        if searchString != nil {
             vc.movie = searchResults[indexPath.row]
             searchController.searchBar.isHidden = true
             searchController.searchBar.endEditing(true)
@@ -111,7 +111,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         // Load the list of movies.
         ZVProgressHUD.show()
         currentPage = 1
-        movieController.loadMovies(page: currentPage, onError: { [weak self] (e) in
+        movieController.loadMovies(page: currentPage, query: nil, onError: { [weak self] (e) in
             print("Failed to load")
             guard let strongSelf = self else {
                 return
@@ -133,7 +133,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     // MARK: - UITableViewDataSource
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if searchActive {
+        if searchString != nil {
             print("searchResults \(searchResults.count)")
             return searchResults.count
         }
@@ -144,7 +144,7 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         var movie: Movie
 
-        if searchActive {
+        if searchString != nil {
             movie = searchResults[indexPath.row]
         } else {
             movie = movies[indexPath.row]
@@ -188,15 +188,18 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     // MARK: - UIScrollViewDelegate
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if !isDataLoading && movies.count > 0 {
+        if !isDataLoading && ((searchString == nil && movies.count > 0) || (searchString != nil && searchResults.count > 0)) {
             let scrollViewContentHeight = movieListTableView.contentSize.height
             let scrollOffsetThreshold = scrollViewContentHeight - movieListTableView.bounds.size.height
             if scrollView.contentOffset.y > scrollOffsetThreshold && movieListTableView.isDragging {
                 isDataLoading = true
+                if searchString != nil {
+                    searchController.searchBar.endEditing(true)
+                }
                 let frame = CGRect(x: 0, y: movieListTableView.contentSize.height, width: movieListTableView.bounds.size.width, height: InfiniteScrollActivityView.defaultHeight)
                 loadingMoreView?.frame = frame
                 loadingMoreView!.startAnimating()
-                movieController.loadMovies(page: currentPage + 1, onError: {[weak self] (e) in
+                movieController.loadMovies(page: currentPage + 1, query: searchString, onError: {[weak self] (e) in
                     print("Failed to load next page")
                     guard let strongSelf = self else {
                         return
@@ -223,9 +226,12 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     
 
     @objc func refreshControlAction(_ refreshControl: UIRefreshControl) {
+        if searchString != nil {
+            return
+        }
         errorLabel!.isHidden = true
         currentPage = 1
-        movieController.loadMovies(page: currentPage, onError: {[weak self] (e) in
+        movieController.loadMovies(page: currentPage, query: nil, onError: {[weak self] (e) in
             print("Failed to refresh")
             guard let strongSelf = self else {
                 return
@@ -252,15 +258,13 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
     }
 
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        searchActive = false
+        searchString = nil
         movieListTableView.reloadData()
     }
     
     // MARK: - Delete maybe from here onwards
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        print("textDidChange called")
-       searchResults = []
     }
     
     @objc func doSearch() {
@@ -270,21 +274,25 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
                 return
         }
         timer.invalidate()
-        searchActive = true
-        movieController.searchMovies(page: 1, query: query , onError: {[weak self] (e) in
+        searchString = query
+        searchResults = []
+        movieListTableView.reloadData()
+        ZVProgressHUD.show()
+        movieController.loadMovies(page: 1, query: query , onError: { [weak self] (e) in
             guard let strongSelf = self else {
                 return
             }
             strongSelf.errorLabel!.isHidden = false
+            ZVProgressHUD.dismiss()
             }, handler: {[weak self] (movies) in
                 guard let strongSelf = self else {
                     return
                 }
-                print(query)
+                ZVProgressHUD.dismiss()
                 strongSelf.errorLabel!.isHidden = true
                 strongSelf.refreshControl?.endRefreshing()
                 strongSelf.searchResults = movies
-                print("Got \(movies.count) results")
+                print("Got \(movies.count) search results for: \(query)")
                 strongSelf.movieListTableView.reloadData()
         })
     }
