@@ -26,6 +26,7 @@ class MovieDetailsViewController: UIViewController {
         super.viewDidLoad()
 
         movie.getExtraDetails(onError: {(e) in
+            // Ignore this error since all we miss are extra details
             print("Network Error")
         }, onSuccess: {[weak self] in
             guard let strongSelf = self else {
@@ -69,7 +70,7 @@ class MovieDetailsViewController: UIViewController {
             // fade in images
             let imageRequest = URLRequest(url: url)
 
-            print("Loading low res image")
+//            print("Loading low res image")
             moviePoster.setImageWith(
                 imageRequest,
                 placeholderImage: nil,
@@ -112,7 +113,7 @@ class MovieDetailsViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        print("viewWillAppear details for \(movie.title)")
+//        print("viewWillAppear details for \(movie.title)")
     }
     
     func loadHighResImage() {
@@ -120,7 +121,7 @@ class MovieDetailsViewController: UIViewController {
             // fade in images
             let imageRequest = URLRequest(url: url)
 
-            print("Loading high-res image")
+//            print("Loading high-res image")
             moviePoster.setImageWith(
                 imageRequest,
                 placeholderImage: nil,
