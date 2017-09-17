@@ -33,6 +33,9 @@ class MovieListViewController: UIViewController, UITableViewDelegate, UITableVie
         // Set our title
         // self.navigationItem.title = parent?.restorationIdentifier
 
+        // This is needed to avoid a black screen when coming back here
+        definesPresentationContext = true
+
         // do search
         searchController.searchResultsUpdater = self
         searchController.searchBar.delegate = self
